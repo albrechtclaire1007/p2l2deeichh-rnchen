@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Eichhörnchen füttern</title>
+<style>
+  @font-face{
+    font-family:'Schoulschreft';
+    src:url('https://raw.githubusercontent.com/albrechtclaire1007/schoulschreft/main/schoulschreft_bold%5B2%5D.TTF') format('truetype');
+    font-weight:700; font-display:swap;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:#ffffff;
+    font-family:'Schoulschreft', Arial, sans-serif;
+    overflow:hidden;
+  }
+
+  /* Stage */
+  .stage{
+    position:relative; width:100%; height:100vh; max-height:100svh;
+    background: radial-gradient(ellipse at center, #f7fbff 0%, #eaf5ff 60%, #e1f0ff 100%);
+  }
+
+  /* Squirrel (drop target) */
+  .squirrel{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:min(45vh, 45vw); max-width:520px; min-width:260px;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:24px;
+    padding:8px;
+  }
+  .squirrel img{width:100%; height:auto; object-fit:contain; pointer-events:none}
+  .pulse{animation:pulse .35s ease}
+  @keyframes pulse{0%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-50%) scale(1.05)} 100%{transform:translate(-50%,-50%) scale(1)}}
+
+  /* Floating draggable items */
+  .item{
+    position:absolute; width:110px; height:110px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:grab; user-select:none;
+    filter: drop-shadow(0 3px 8px rgba(0,0,0,.15));
+    animation: floatY var(--dur,6s) ease-in-out infinite alternate;
+    touch-action:none;
+  }
+  .item img{max-width:100%; max-height:100%; object-fit:contain; pointer-events:none}
+  .item.dragging{opacity:.7; animation-play-state:paused}
+  @keyframes floatY{from{transform:translateY(-6px)} to{transform:translateY(10px)}}
+
+  /* Tiny reset button (icon style) */
+  .reset{
+    position:absolute; right:10px; top:10px;
+    background:#6EC1E4; color:#fff; border:none; border-radius:14px;
+    width:44px; height:44px; font-size:22px; line-height:44px;
+    text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,.2);
+  }
+  .aria-note{position:absolute; left:-9999px}
+</style>
+</head>
+<body>
+<div class="stage" id="stage" aria-label="Eichhörnchen füttern">
+  <button class="reset" id="resetBtn" aria-label="Neu laden">↻</button>
+
+  <!-- Screenreader helper -->
+  <div class="aria-note" id="live" aria-live="polite"></div>
+
+  <!-- BIG squirrel in the middle -->
+  <div class="squirrel" id="squirrel" aria-label="Eichhörnchen (hier ablegen)">
+    <img id="squirrelImg" alt="" src="https://i.postimg.cc/yWBhYxZS/temp-Imagesa-NTl-O.avif">
+  </div>
+</div>
+
+<script>
+  // --- Assets (same set as before) ---
+  const FOOD = [
+    {id:'acorn',  url:'https://i.postimg.cc/Z9k6d5Cn/temp-Image-P5-Ljo-W.avif'},
+    {id:'rasp',   url:'https://i.postimg.cc/xkrLz1cz/temp-Imager-L7-T83.avif'},
+    {id:'mush',   url:'https://i.postimg.cc/Fft0LH77/temp-Imageqqm-VR8.avif'},
+    {id:'walnut', url:'https://i.postimg.cc/hJFVdtf9/temp-Imagergt-VZq.avif'},
+    {id:'apple',  url:'https://i.postimg.cc/bGX1tws2/temp-Imagex-Kd-Bd-Q.avif'},
+    {id:'hazel',  url:'https://i.postimg.cc/t1hWtGxk/temp-Imagej-Hk69-Y.avif'},
+    {id:'beetle', url:'https://i.postimg.cc/fVSxy9TM/temp-Imagea-ZMe-D0.avif'},
+    {id:'ant',    url:'https://i.postimg.cc/R3rwHZN0/temp-Image-QNc-Gt-P.avif'}
+  ];
+  const NOT_FOOD = [
+    {id:'fish',    url:'https://i.postimg.cc/qt8yXH32/temp-Image62-ENJP.avif'},
+    {id:'potato',  url:'https://i.postimg.cc/2q4hFNZx/temp-Image7-W5-Pkx.avif'},
+    {id:'spaghetti',url:'https://i.postimg.cc/PpTZSVW3/temp-Image-GXfuc-I.avif'},
+    {id:'ice',     url:'https://i.postimg.cc/r0MWfZ1g/temp-Imagegy-B6-Ud.avif'},
+    {id:'cake',    url:'https://i.postimg.cc/zLnKSYgS/temp-Image-Jc-VX3-N.avif'}
+  ];
+
+  const IMG_WAIT  = 'https://i.postimg.cc/yWBhYxZS/temp-Imagesa-NTl-O.avif';
+  const IMG_YUCK  = 'https://i.postimg.cc/xqYGT8bw/temp-Image-T5-Yo-CX.avif';
+  const IMG_HAPPY = 'https://i.postimg.cc/xqYGT8zm/temp-Image-W1u-K9l.avif';
+
+  const ITEMS = [...FOOD.map(x=>({...x,eat:true})), ...NOT_FOOD.map(x=>({...x,eat:false}))];
+
+  const stage = document.getElementById('stage');
+  const squirrel = document.getElementById('squirrel');
+  const sImg = document.getElementById('squirrelImg');
+  const live = document.getElementById('live');
+
+  function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a;}
+
+  function placeRandom(el){
+    const pad = 40; // keep away from edges
+    const W = stage.clientWidth, H = stage.clientHeight;
+    const x = Math.random()*(W-2*pad-120)+pad;
+    const y = Math.random()*(H-2*pad-120)+pad;
+    el.style.left = x+'px';
+    el.style.top  = y+'px';
+    el.style.setProperty('--dur', (5+Math.random()*4)+'s');
+  }
+
+  function build(){
+    // remove old items
+    document.querySelectorAll('.item').forEach(el=>el.remove());
+    sImg.src = IMG_WAIT;
+
+    // create floating items
+    shuffle(ITEMS.slice()).forEach(it=>{
+      const d = document.createElement('div');
+      d.className = 'item';
+      d.id = 'item-'+it.id;
+      d.draggable = true;
+      d.dataset.eat = it.eat ? '1':'0';
+      d.innerHTML = `<img alt="" src="${it.url}">`;
+      placeRandom(d);
+
+      d.addEventListener('dragstart', e=>{
+        d.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', it.id);
+      });
+      d.addEventListener('dragend', ()=> d.classList.remove('dragging'));
+
+      stage.appendChild(d);
+    });
+  }
+
+  // Make squirrel a drop target
+  function isOverSquirrel(e){
+    const r = squirrel.getBoundingClientRect();
+    const x = e.clientX, y = e.clientY;
+    return x>=r.left && x<=r.right && y>=r.top && y<=r.bottom;
+  }
+
+  // Allow drop when over squirrel
+  stage.addEventListener('dragover', e=>{
+    if(isOverSquirrel(e)) e.preventDefault();
+  });
+
+  stage.addEventListener('drop', e=>{
+    if(!isOverSquirrel(e)) return;
+    e.preventDefault();
+    const id = e.dataTransfer.getData('text/plain');
+    const card = document.getElementById('item-'+id);
+    if(!card) return;
+    const isFood = card.dataset.eat==='1';
+    // Reaction
+    sImg.src = isFood ? IMG_HAPPY : IMG_YUCK;
+    squirrel.classList.add('pulse');
+    setTimeout(()=>{ squirrel.classList.remove('pulse'); sImg.src = IMG_WAIT; }, 900);
+    live.textContent = isFood ? 'Lecker!' : 'Igitt!';
+    // Remove the fed item
+    card.remove();
+  });
+
+  // Reset
+  document.getElementById('resetBtn').addEventListener('click', build);
+
+  // Build on load
+  build();
+  // Re-place items on resize to keep them visible
+  window.addEventListener('resize', ()=>{
+    document.querySelectorAll('.item').forEach(placeRandom);
+  });
+</script>
+</body>
+</html>
