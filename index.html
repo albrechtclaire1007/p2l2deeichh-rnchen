@@ -3,249 +3,149 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Was frisst das Eichhörnchen? (P2L2)</title>
+<title>Eichhörnchen füttern – Sortieren</title>
 <style>
   @font-face{
     font-family:'Schoulschreft';
     src:url('https://raw.githubusercontent.com/albrechtclaire1007/schoulschreft/main/schoulschreft_bold%5B2%5D.TTF') format('truetype');
-    font-weight:700;
-    font-display:swap;
+    font-weight:700; font-display:swap;
   }
   :root{
-    --bg:#ffffff;
-    --ink:#222;
-    --p2: #6EC1E4;   /* soft school blue */
-    --p2b:#2B6CB0;   /* darker blue for accents */
-    --ok:#22aa22;
-    --bad:#dd3333;
+    --p2:#6EC1E4; --p2b:#2B6CB0; --ok:#22aa22; --bad:#dd3333;
   }
   *{box-sizing:border-box}
-  body{
-    margin:0; padding:16px;
-    background:var(--bg);
-    font-family:'Schoulschreft', Arial, sans-serif;
-    color:var(--ink);
-  }
-  .wrap{
-    max-width:1100px; margin:0 auto;
-    display:grid; gap:14px;
-    grid-template-rows:auto auto 1fr auto;
-  }
-  header{
-    display:flex; align-items:center; justify-content:space-between; gap:12px;
-  }
-  h1{
-    font-size: clamp(22px, 3.5vw, 34px);
-    margin:0; color:var(--p2b);
-  }
-  .controls{display:flex; gap:10px; flex-wrap:wrap}
-  button{
-    font-family:'Schoulschreft', Arial, sans-serif;
-    border:none; border-radius:12px; padding:10px 14px;
-    background:var(--p2); color:#fff; font-size:20px; cursor:pointer;
-    box-shadow:0 2px 6px rgba(0,0,0,.15);
-  }
-  button:hover{filter:brightness(.95)}
-  .board{
-    display:grid; gap:14px;
-    grid-template-columns: 1fr 280px 1fr;
-    align-items:start;
-  }
-  .squirrel{
-    display:flex; align-items:center; justify-content:center;
-    background:#f5fbff; border:2px dashed var(--p2); border-radius:18px;
-    padding:8px; min-height:220px;
-  }
-  .squirrel img{max-width:100%; height:210px; object-fit:contain}
-  .zone{
-    border:3px solid var(--p2b); border-radius:16px; padding:10px;
-    min-height:260px; background:#f0f7ff;
-  }
-  .zone h2{font-size:26px; margin:0 0 8px 0; text-align:center}
-  .droparea{
-    display:flex; flex-wrap:wrap; gap:10px; min-height:200px;
-    align-content:flex-start; justify-content:center; padding:6px;
-  }
-  .cards{
-    display:flex; flex-wrap:wrap; gap:10px; justify-content:center;
-    background:#fafafa; border:2px dashed #ddd; border-radius:14px; padding:10px;
-  }
-  .card{
-    width:110px; height:110px; background:#fff; border:2px solid #ddd; border-radius:14px;
-    display:flex; align-items:center; justify-content:center;
-    cursor:grab; user-select:none;
-    box-shadow:0 2px 6px rgba(0,0,0,.08);
-  }
+  body{margin:0; padding:14px; font-family:'Schoulschreft',Arial,sans-serif; background:#fff; color:#222;}
+  .topbar{display:flex; justify-content:flex-end}
+  .btn{border:none; border-radius:12px; padding:10px 14px; background:var(--p2); color:#fff; font-size:20px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,.15)}
+  .msg{min-height:28px; text-align:center; font-size:22px; margin:6px 0 10px}
+  .board{max-width:1100px; margin:0 auto; display:grid; gap:14px; grid-template-columns:1fr 320px 1fr; align-items:start;}
+  .squirrel{display:flex; align-items:center; justify-content:center; background:#f5fbff; border:2px dashed var(--p2); border-radius:18px; padding:8px; min-height:260px}
+  .squirrel img{width:100%; height:auto; max-height:280px; object-fit:contain; pointer-events:none}
+  .pulse{animation:pulse .35s ease}
+  @keyframes pulse{0%{transform:scale(1)} 50%{transform:scale(1.05)} 100%{transform:scale(1)}}
+
+  .zone{border:3px solid var(--p2b); border-radius:16px; padding:10px; background:#f0f7ff; min-height:300px}
+  .zone h2{margin:0 0 8px; font-size:26px; text-align:center}
+  .droparea{display:flex; flex-wrap:wrap; gap:10px; min-height:240px; align-content:flex-start; justify-content:center; padding:6px}
+
+  .cards{max-width:1100px; margin:10px auto 0; display:flex; flex-wrap:wrap; gap:10px; justify-content:center; background:#fafafa; border:2px dashed #ddd; border-radius:14px; padding:10px}
+  .card{width:110px; height:110px; background:#fff; border:2px solid #ddd; border-radius:14px; display:flex; align-items:center; justify-content:center; cursor:grab; user-select:none; box-shadow:0 2px 6px rgba(0,0,0,.08)}
+  .card img{max-width:90%; max-height:90%; object-fit:contain; pointer-events:none}
   .card.dragging{opacity:.6}
-  .card img{max-width:90%; max-height:90%; object-fit:contain}
-  .droparea.over{outline:3px dashed var(--p2b)}
-  .msg{
-    text-align:center; font-size:22px; min-height:28px; margin-top:4px;
-  }
-  .score{font-size:22px; color:var(--p2b)}
-  .good{color:var(--ok)} .bad{color:var(--bad)}
-  @media (max-width:850px){
-    .board{grid-template-columns:1fr; }
-    .squirrel{order:-1}
-  }
+  @media (max-width:860px){.board{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>Was frisst das Eichhörnchen?</h1>
-    <div class="controls">
-      <button id="checkBtn">Prüfen</button>
-      <button id="resetBtn">Neu</button>
-      <span class="score" id="score">Punkte: 0</span>
-    </div>
-  </header>
-
-  <div class="msg" id="msg">Ziehe die Bilder in die richtige Kiste.</div>
+  <div class="topbar"><button class="btn" id="resetBtn">Neu</button></div>
+  <div class="msg" id="msg">Zieh ein Bild auf das Eichhörnchen.</div>
 
   <div class="board" aria-label="Spielfeld">
-    <section class="zone" data-zone="frisst">
+    <section class="zone">
       <h2>Frisst</h2>
       <div class="droparea" id="eatZone" aria-label="Frisst"></div>
     </section>
 
-    <section class="squirrel" aria-live="polite" aria-label="Eichhörnchen">
-      <img id="squirrelImg" alt="Eichhörnchen wartet"
-        src="https://i.postimg.cc/yWBhYxZS/temp-Imagesa-NTl-O.avif">
+    <section class="squirrel" aria-live="polite" aria-label="Eichhörnchen (hier ablegen)">
+      <img id="squirrelImg" src="https://i.postimg.cc/yWBhYxZS/temp-Imagesa-NTl-O.avif" alt="">
     </section>
 
-    <section class="zone" data-zone="nicht">
+    <section class="zone">
       <h2>Frisst nicht</h2>
       <div class="droparea" id="noEatZone" aria-label="Frisst nicht"></div>
     </section>
   </div>
 
-  <section>
-    <div class="cards" id="startPile" aria-label="Bilder zum Ziehen"></div>
-  </section>
-</div>
+  <div class="cards" id="startPile" aria-label="Bilder zum Ziehen"></div>
 
 <script>
-  // --- Teacher: adjust sets here if needed ---
-  // Food items (not highlighted)
+  // ---- Assets ----
   const FOOD = [
-    {id:'acorn', url:'https://i.postimg.cc/Z9k6d5Cn/temp-Image-P5-Ljo-W.avif'},
-    {id:'rasp', url:'https://i.postimg.cc/xkrLz1cz/temp-Imager-L7-T83.avif'},
-    {id:'mush', url:'https://i.postimg.cc/Fft0LH77/temp-Imageqqm-VR8.avif'},
+    {id:'acorn',  url:'https://i.postimg.cc/Z9k6d5Cn/temp-Image-P5-Ljo-W.avif'},
+    {id:'rasp',   url:'https://i.postimg.cc/xkrLz1cz/temp-Imager-L7-T83.avif'},
+    {id:'mush',   url:'https://i.postimg.cc/Fft0LH77/temp-Imageqqm-VR8.avif'},
     {id:'walnut', url:'https://i.postimg.cc/hJFVdtf9/temp-Imagergt-VZq.avif'},
-    {id:'apple', url:'https://i.postimg.cc/bGX1tws2/temp-Imagex-Kd-Bd-Q.avif'},
-    {id:'hazel', url:'https://i.postimg.cc/t1hWtGxk/temp-Imagej-Hk69-Y.avif'},
+    {id:'apple',  url:'https://i.postimg.cc/bGX1tws2/temp-Imagex-Kd-Bd-Q.avif'},
+    {id:'hazel',  url:'https://i.postimg.cc/t1hWtGxk/temp-Imagej-Hk69-Y.avif'},
     {id:'beetle', url:'https://i.postimg.cc/fVSxy9TM/temp-Imagea-ZMe-D0.avif'},
-    {id:'ant', url:'https://i.postimg.cc/R3rwHZN0/temp-Image-QNc-Gt-P.avif'}
+    {id:'ant',    url:'https://i.postimg.cc/R3rwHZN0/temp-Image-QNc-Gt-P.avif'}
   ];
-  // Not food (highlighted in your screenshot)
   const NOT_FOOD = [
-    {id:'fish', url:'https://i.postimg.cc/qt8yXH32/temp-Image62-ENJP.avif'},
-    {id:'potato', url:'https://i.postimg.cc/2q4hFNZx/temp-Image7-W5-Pkx.avif'},
-    {id:'spaghetti', url:'https://i.postimg.cc/PpTZSVW3/temp-Image-GXfuc-I.avif'},
-    {id:'ice', url:'https://i.postimg.cc/r0MWfZ1g/temp-Imagegy-B6-Ud.avif'},
-    {id:'cake', url:'https://i.postimg.cc/zLnKSYgS/temp-Image-Jc-VX3-N.avif'}
+    {id:'fish',    url:'https://i.postimg.cc/qt8yXH32/temp-Image62-ENJP.avif'},
+    {id:'potato',  url:'https://i.postimg.cc/2q4hFNZx/temp-Image7-W5-Pkx.avif'},
+    {id:'spaghetti',url:'https://i.postimg.cc/PpTZSVW3/temp-Image-GXfuc-I.avif'},
+    {id:'ice',     url:'https://i.postimg.cc/r0MWfZ1g/temp-Imagegy-B6-Ud.avif'},
+    {id:'cake',    url:'https://i.postimg.cc/zLnKSYgS/temp-Image-Jc-VX3-N.avif'}
   ];
+  const IMG_WAIT  = 'https://i.postimg.cc/yWBhYxZS/temp-Imagesa-NTl-O.avif';
+  const IMG_YUCK  = 'https://i.postimg.cc/xqYGT8bw/temp-Image-T5-Yo-CX.avif';
+  const IMG_HAPPY = 'https://i.postimg.cc/xqYGT8zm/temp-Image-W1u-K9l.avif';
 
-  // Squirrel images
-  const IMG_WAIT   = 'https://i.postimg.cc/yWBhYxZS/temp-Imagesa-NTl-O.avif';
-  const IMG_YUCK   = 'https://i.postimg.cc/xqYGT8bw/temp-Image-T5-Yo-CX.avif';
-  const IMG_HAPPY  = 'https://i.postimg.cc/xqYGT8zm/temp-Image-W1u-K9l.avif';
-
-  // Build deck
-  const ALL = [...FOOD.map(x=>({...x, eat:true})), ...NOT_FOOD.map(x=>({...x, eat:false}))];
+  const ALL = [...FOOD.map(x=>({...x,eat:true})), ...NOT_FOOD.map(x=>({...x,eat:false}))];
 
   const startPile = document.getElementById('startPile');
   const eatZone = document.getElementById('eatZone');
   const noEatZone = document.getElementById('noEatZone');
-  const scoreEl = document.getElementById('score');
   const msgEl = document.getElementById('msg');
-  const squirrelImg = document.getElementById('squirrelImg');
-
-  let placed = {}; // id -> 'eat'|'no'|undefined
-  let score = 0;
+  const squirrel = document.querySelector('.squirrel');
+  const sImg = document.getElementById('squirrelImg');
 
   function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
-  function makeCard(item){
-    const div = document.createElement('div');
-    div.className = 'card';
-    div.draggable = true;
-    div.id = 'card-'+item.id;
-    div.dataset.id = item.id;
-    div.dataset.eat = item.eat ? '1':'0';
-    div.innerHTML = `<img alt="" src="${item.url}">`;
-
-    div.addEventListener('dragstart', e=>{
-      div.classList.add('dragging');
-      e.dataTransfer.setData('text/plain', item.id);
+  function makeCard(it){
+    const d = document.createElement('div');
+    d.className='card'; d.id='card-'+it.id; d.draggable=true;
+    d.dataset.eat = it.eat ? '1':'0';
+    d.innerHTML = `<img alt="" src="${it.url}">`;
+    d.addEventListener('dragstart', e=>{
+      d.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', it.id);
     });
-    div.addEventListener('dragend', ()=>div.classList.remove('dragging'));
-    return div;
-  }
-
-  function cardById(id){ return document.querySelector(`#card-${CSS.escape(id)}`); }
-
-  function allowDrop(zone){
-    zone.addEventListener('dragover', e=>{ e.preventDefault(); zone.classList.add('over'); });
-    zone.addEventListener('dragleave', ()=> zone.classList.remove('over'));
-    zone.addEventListener('drop', e=>{
-      e.preventDefault(); zone.classList.remove('over');
-      const id = e.dataTransfer.getData('text/plain');
-      const card = cardById(id);
-      if(!card) return;
-      zone.appendChild(card);
-      const isEatZone = (zone===eatZone);
-      placed[id] = isEatZone ? 'eat' : 'no';
-      // Squirrel reacts only when "fed" (Frisst)
-      if(isEatZone){
-        const isFood = card.dataset.eat==='1';
-        squirrelImg.src = isFood ? IMG_HAPPY : IMG_YUCK;
-        msgEl.textContent = isFood ? 'Lecker!' : 'Igitt!';
-      }else{
-        squirrelImg.src = IMG_WAIT;
-        msgEl.textContent = 'Gut sortiert? Prüfe!';
-      }
-      updateScorePreview();
-    });
-  }
-
-  function updateScorePreview(){
-    // live points for correctly placed so far
-    let pts = 0;
-    for(const it of ALL){
-      const where = placed[it.id];
-      if(!where) continue;
-      if((it.eat && where==='eat') || (!it.eat && where==='no')) pts++;
-    }
-    scoreEl.textContent = `Punkte: ${pts}/${ALL.length}`;
+    d.addEventListener('dragend', ()=>d.classList.remove('dragging'));
+    return d;
   }
 
   function build(){
     startPile.innerHTML=''; eatZone.innerHTML=''; noEatZone.innerHTML='';
-    squirrelImg.src = IMG_WAIT; msgEl.textContent='Ziehe die Bilder in die richtige Kiste.';
-    score = 0; placed = {};
-    shuffle(ALL.slice()).forEach(item => startPile.appendChild(makeCard(item)));
+    sImg.src = IMG_WAIT; msgEl.textContent='Zieh ein Bild auf das Eichhörnchen.';
+    shuffle(ALL.slice()).forEach(it=>startPile.appendChild(makeCard(it)));
   }
 
-  document.getElementById('checkBtn').addEventListener('click', ()=>{
-    let correct = 0;
-    for(const it of ALL){
-      const where = placed[it.id];
-      if((it.eat && where==='eat') || (!it.eat && where==='no')) correct++;
+  // Only the squirrel is the drop target
+  function isOverSquirrel(e){
+    const r = squirrel.getBoundingClientRect();
+    const x = e.clientX, y = e.clientY;
+    return x>=r.left && x<=r.right && y>=r.top && y<=r.bottom;
+  }
+  document.addEventListener('dragover', e=>{ if(isOverSquirrel(e)) e.preventDefault(); });
+  document.addEventListener('drop', e=>{
+    if(!isOverSquirrel(e)) return;
+    e.preventDefault();
+    const id = e.dataTransfer.getData('text/plain');
+    const card = document.getElementById('card-'+id);
+    if(!card) return;
+    const isFood = card.dataset.eat==='1';
+
+    // reaction
+    sImg.src = isFood ? IMG_HAPPY : IMG_YUCK;
+    squirrel.classList.add('pulse');
+    msgEl.textContent = isFood ? 'Lecker!' : 'Igitt!';
+
+    // move the card automatically to the correct box
+    (isFood ? eatZone : noEatZone).appendChild(card);
+
+    // after a short moment, go back to waiting face
+    setTimeout(()=>{ sImg.src = IMG_WAIT; squirrel.classList.remove('pulse'); }, 900);
+
+    // when all sorted, celebrate briefly
+    const remaining = startPile.querySelectorAll('.card').length;
+    const done = eatZone.children.length + noEatZone.children.length;
+    if(remaining===0 && done===ALL.length){
+      setTimeout(()=>{ msgEl.textContent='Super! 🎉'; }, 950);
     }
-    score = correct;
-    scoreEl.textContent = `Punkte: ${score}/${ALL.length}`;
-    msgEl.innerHTML = correct===ALL.length
-      ? 'Super! Alles richtig! 🎉'
-      : 'Fast! Schau noch einmal.';
   });
 
   document.getElementById('resetBtn').addEventListener('click', build);
-
-  allowDrop(eatZone); allowDrop(noEatZone);
   build();
 </script>
 </body>
 </html>
-
